@@ -1,0 +1,5 @@
+../Drivers/CMSIS/Include/core_cm4.h:1688:22:__NVIC_EnableIRQ	2
+../Src/timer_init.c:8:6:LED_FLASH_TIMER_INIT	1
+../Src/timer_init.c:27:6:LED_FLASH_TIMER_UPDATE_VAL	1
+../Src/timer_init.c:45:6:LCD_DELAY_OPM_TIMER_INIT	1
+../Src/timer_init.c:56:6:LCD_DELAY_OPM_TIMER_UPDATE	1
