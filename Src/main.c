@@ -26,8 +26,58 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+/*
+ * Function Prototype
+ */
+void init(void);
+
+
+
 int main(void)
 {
+  UINT16 COUNT = 0;
+
+  init();
+
+  while(1){
+
+    //Polling for user button press
+    while((GPIOC->IDR & (1U << 13))){}
+
+    //Onboard LED ON, cycle is in process.
+    GPIOA_BSRR_SEL(PIN_5, BSRR_PIN_SET);
+
+    /*
+     *  Code responsible for turning on the LED and charging the TIA
+     */
+
+    GPIOA_BSRR_SEL(PIN_6, BSRR_PIN_SET);  //Turn on IR LED
+    LCD_DELAY_OPM_TIMER_UPDATE(10); //Delay to ensure LED is properly turned on
+    while(!(TIM2_COMPLETE_EVENT)){}
+    
+    for(COUNT = 0; COUNT < 100; COUNT++){
+
+      GPIOA_BSRR_SEL(PIN_7, BSRR_PIN_SET);  //Start charging TIA
+      LCD_DELAY_OPM_TIMER_UPDATE(10); //Delay to ensure TIA is charged to 1ms
+      while(!(TIM2_COMPLETE_EVENT)){}
+
+      GPIOA_BSRR_SEL(PIN_7, BSRR_PIN_CLEAR);  //Resets TIA
+      LCD_DELAY_OPM_TIMER_UPDATE(10); //Delay between different TIA charging cycles
+      while(!(TIM2_COMPLETE_EVENT)){}
+    }
+
+    GPIOA_BSRR_SEL(PIN_6, BSRR_PIN_CLEAR);  //Turn off IR LED
+
+    LCD_DELAY_OPM_TIMER_UPDATE(10000);
+    while(!(TIM2_COMPLETE_EVENT)){}
+
+    //Onboard LED OFF, cycle is finished.
+    GPIOA_BSRR_SEL(PIN_5, BSRR_PIN_CLEAR);
+  }
+}
+
+void init(void){
+  
   //Configuring Blue Push-Button
   RCC_GPIO_CLK_ENABLE(GPIOC_CLK_EN);
   GPIOC_MODER_SEL(PIN_13, INPUT_SEL);
@@ -45,30 +95,4 @@ int main(void)
   //Initializing One Pulse Mode Timer for 1ms
   LCD_DELAY_OPM_TIMER_INIT(10);
   while(!(TIM2_COMPLETE_EVENT)){}
-
-  while(1){
-
-    //Polling for user button press
-    while((GPIOC->IDR & (1U << 13))){}
-
-    //Onboard LED ON, cycle is in process.
-    GPIOA_BSRR_SEL(PIN_5, BSRR_PIN_SET);
-
-    /*
-     *  Code responsible for turning on the LED and charging the TIA
-     */
-
-    GPIOA_BSRR_SEL(PIN_6, BSRR_PIN_SET);  //Turn on IR LED
-    LCD_DELAY_OPM_TIMER_UPDATE(10); //Delay to ensure LED is properly turned on
-    GPIOA_BSRR_SEL(PIN_7, BSRR_PIN_SET);  //Start charging TIA
-    LCD_DELAY_OPM_TIMER_UPDATE(10); //Delay to ensure TIA is charged to 1ms
-    GPIOA_BSRR_SEL(PIN_7, BSRR_PIN_CLEAR);  //Resets TIA
-    GPIOA_BSRR_SEL(PIN_6, BSRR_PIN_CLEAR);  //Turn off IR LED
-
-    LCD_DELAY_OPM_TIMER_UPDATE(10000);
-    while(!(TIM2_COMPLETE_EVENT)){}
-
-    //Onboard LED OFF, cycle is finished.
-    GPIOA_BSRR_SEL(PIN_5, BSRR_PIN_CLEAR);
-  }
 }
